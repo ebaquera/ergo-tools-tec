@@ -1,0 +1,958 @@
+<!DOCTYPE html> 
+
+<html lang=”en”> 
+
+<head> 
+
+<meta charset=”UTF-8”> 
+
+<meta name=”viewport” content=”width=device-width, initial-scale=1.0”> 
+
+<title>RULA Assessment Calculator</title> 
+
+<link rel=”preconnect” href=https://fonts.googleapis.com> 
+
+<link href=https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap rel=”stylesheet”> 
+
+<style>
+  :root {
+    --bg: #0E1A28;
+    --bg-grid: rgba(120, 170, 220, 0.055);
+    --panel: #15263a;
+    --panel-raised: #1C3049;
+    --line: #2E4A63;
+    --ink: #E7EEF5;
+    --ink-dim: #92A7BC;
+    --cyan: #63A6D9;
+    --cyan-dim: #3D6E93;
+    --amber: #E0A527;
+    --amber-dim: #7A5C1B;
+    --red: #D1495B;
+    --red-dim: #6E2530;
+    --green: #4FA579;
+    --green-dim: #245038;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --cond: 'IBM Plex Sans Condensed', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 28px 20px 80px;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+    margin-bottom: 26px;
+  }
+
+  .title-block { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+  h1 {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 34px;
+    margin: 0;
+    letter-spacing: .01em;
+  }
+  .subtitle {
+    color: var(--ink-dim);
+    font-size: 13.5px;
+    max-width: 560px;
+    line-height: 1.5;
+  }
+  .header-controls { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .04em;
+    background: var(--panel-raised);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btn.primary {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+    color: #fff;
+  }
+  .btn.primary:hover { background: var(--cyan); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 1020px) {
+    .grid { grid-template-columns: 1fr; }
+    .readout { position: static !important; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-raised);
+  }
+  .panel-head .label {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .panel-head .idx {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: .1em;
+  }
+  .panel-body {
+    padding: 16px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .step {
+    border-bottom: 1px dashed var(--line);
+    padding-bottom: 14px;
+  }
+  .step:last-child { border-bottom: none; padding-bottom: 0; }
+  .step-label {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    letter-spacing: .03em;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .step-label .num { color: var(--cyan); font-weight: 600; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 8px 10px 8px 8px;
+    cursor: pointer;
+    transition: all .12s ease;
+    line-height: 1.3;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chip:hover { border-color: var(--cyan-dim); color: var(--ink); }
+  .chip.active {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+    color: #fff;
+    font-weight: 500;
+  }
+  .chip small {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    opacity: .8;
+    margin-top: 2px;
+  }
+
+  .adjust-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.015);
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: border-color .12s ease, background .12s ease, color .12s ease;
+  }
+  .adjust-row:hover { border-color: var(--cyan-dim); color: var(--ink); }
+  .adjust-row input { accent-color: var(--cyan); }
+  .adjust-row .adjust-tag {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 6px;
+    color: var(--ink);
+    background: rgba(255,255,255,.02);
+  }
+  .adjust-row.on {
+    border-color: var(--green);
+    background: rgba(79, 165, 121, 0.08);
+    color: var(--ink);
+  }
+
+  .readout { position: sticky; top: 18px; }
+  .final-panel {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(99,166,217,.08), rgba(28,48,73,.4));
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .final-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 10px;
+  }
+  .final-score {
+    font-family: var(--cond);
+    font-size: 64px;
+    line-height: 1;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .final-verdict {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .final-action {
+    color: var(--ink-dim);
+    line-height: 1.5;
+    font-size: 13px;
+  }
+  .band-1 { color: var(--green); }
+  .band-2 { color: var(--amber); }
+  .band-3 { color: var(--amber); }
+  .band-4 { color: var(--red); }
+  .band-1-bg { background: rgba(79, 165, 121, 0.12); }
+  .band-2-bg { background: rgba(224, 165, 39, 0.12); }
+  .band-3-bg { background: rgba(224, 165, 39, 0.12); }
+  .band-4-bg { background: rgba(209, 73, 91, 0.12); }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13px;
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-row .k { color: var(--ink-dim); }
+  .score-row .v {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  .silhouette-wrap {
+    margin-top: 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .cap {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--cyan);
+    background: var(--panel-raised);
+    text-transform: uppercase;
+  }
+  .silhouette-wrap svg {
+    display: block;
+    width: 100%;
+    height: 220px;
+    background: rgba(255,255,255,.012);
+  }
+
+  footer {
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-dim);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+</style>
+
+</head> 
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title-block">
+        <div class="eyebrow" data-i18n="eyebrow">Ergonomics Lab SLP — Instrument 01</div>
+        <h1 data-i18n="title">RULA Assessment Calculator</h1>
+        <div class="subtitle" data-i18n="subtitle">Rapid Upper Limb Assessment, worked step by step. Select the observed posture for each body region; scores update live using McAtamney &amp; Corlett’s original scoring tables.</div>
+      </div>
+      <div class="header-controls">
+        <button class="btn" id="langBtn" type="button">ES</button>
+        <button class="btn" id="exampleBtn" type="button" data-i18n="loadExample">Load example</button>
+        <button class="btn" id="resetBtn" type="button" data-i18n="reset">Reset</button>
+        <button class="btn primary" id="printBtn" type="button" data-i18n="print">Print</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <div class="label" data-i18n="sectionA">A — Arm &amp; Wrist Analysis</div>
+          <div class="idx">TABLE A</div>
+        </div>
+        <div class="panel-body">
+          <div class="step">
+            <div class="step-label"><span class="num">01</span><span data-i18n="s1">Upper arm position</span></div>
+            <div class="chips" data-group="upperArm">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s1o1">20° ext – 20° flex</span><small data-i18n="s1o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s1o2">&gt;20° ext, or 20–45° flex</span><small data-i18n="s1o2s">score 2</small></button>
+              <button class="chip" type="button" data-value="3"><span data-i18n="s1o3">45–90° flexion</span><small data-i18n="s1o3s">score 3</small></button>
+              <button class="chip" type="button" data-value="4"><span data-i18n="s1o4">&gt;90° flexion</span><small data-i18n="s1o4s">score 4</small></button>
+            </div>
+            <label class="adjust-row" data-adjust="shoulderRaised"><input type="checkbox"><span data-i18n="a1a">Shoulder is raised</span><span class="adjust-tag">+1</span></label>
+            <label class="adjust-row" data-adjust="abducted"><input type="checkbox"><span data-i18n="a1b">Upper arm is abducted</span><span class="adjust-tag">+1</span></label>
+            <label class="adjust-row" data-adjust="supported"><input type="checkbox"><span data-i18n="a1c">Arm is supported / leaning</span><span class="adjust-tag">−1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">02</span><span data-i18n="s2">Lower arm position</span></div>
+            <div class="chips" data-group="lowerArm">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s2o1">60–100°</span><small data-i18n="s2o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s2o2">&lt;60° or &gt;100°</span><small data-i18n="s2o2s">score 2</small></button>
+            </div>
+            <label class="adjust-row" data-adjust="acrossMidline"><input type="checkbox"><span data-i18n="a2a">Working across midline or out to side</span><span class="adjust-tag">+1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">03</span><span data-i18n="s3">Wrist position</span></div>
+            <div class="chips" data-group="wrist">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s3o1">0° (neutral)</span><small data-i18n="s3o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s3o2">0–15° flex / ext</span><small data-i18n="s3o2s">score 2</small></button>
+              <button class="chip" type="button" data-value="3"><span data-i18n="s3o3">&gt;15° flex / ext</span><small data-i18n="s3o3s">score 3</small></button>
+            </div>
+            <label class="adjust-row" data-adjust="bentMidline"><input type="checkbox"><span data-i18n="a3a">Wrist is bent from midline</span><span class="adjust-tag">+1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">04</span><span data-i18n="s4">Wrist twist</span></div>
+            <div class="chips" data-group="wristTwist">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s4o1">Mid-range of twist</span><small data-i18n="s4o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s4o2">At / near end of range</span><small data-i18n="s4o2s">score 2</small></button>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">06</span><span data-i18n="s6">Muscle use (arm/wrist)</span></div>
+            <label class="adjust-row" data-adjust="muscleA"><input type="checkbox"><span data-i18n="a6a">Mainly static (held &gt;1 min) or repeated ≥4x/min</span><span class="adjust-tag">+1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">07</span><span data-i18n="s7">Force / load (arm/wrist)</span></div>
+            <div class="chips" data-group="forceA">
+              <button class="chip" type="button" data-value="0"><span data-i18n="s7o1">&lt;4.4 lb, intermittent</span><small>+0</small></button>
+              <button class="chip" type="button" data-value="1"><span data-i18n="s7o2">4.4–22 lb, intermittent</span><small>+1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s7o3">4.4–22 lb, static / repeated</span><small>+2</small></button>
+              <button class="chip" type="button" data-value="3"><span data-i18n="s7o4">&gt;22 lb, or repeated / shock</span><small>+3</small></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="label" data-i18n="sectionB">B — Neck, Trunk &amp; Leg Analysis</div>
+          <div class="idx">TABLE B</div>
+        </div>
+        <div class="panel-body">
+          <div class="step">
+            <div class="step-label"><span class="num">09</span><span data-i18n="s9">Neck position</span></div>
+            <div class="chips" data-group="neck">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s9o1">0–10° flexion</span><small data-i18n="s9o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s9o2">10–20° flexion</span><small data-i18n="s9o2s">score 2</small></button>
+              <button class="chip" type="button" data-value="3"><span data-i18n="s9o3">&gt;20° flexion</span><small data-i18n="s9o3s">score 3</small></button>
+              <button class="chip" type="button" data-value="4"><span data-i18n="s9o4">In extension</span><small data-i18n="s9o4s">score 4</small></button>
+            </div>
+            <label class="adjust-row" data-adjust="neckTwisted"><input type="checkbox"><span data-i18n="a9a">Neck is twisted</span><span class="adjust-tag">+1</span></label>
+            <label class="adjust-row" data-adjust="neckSide"><input type="checkbox"><span data-i18n="a9b">Neck is side bending</span><span class="adjust-tag">+1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">10</span><span data-i18n="s10">Trunk position</span></div>
+            <div class="chips" data-group="trunk">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s10o1">Sitting, well supported, 0°</span><small data-i18n="s10o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s10o2">0–20° flexion</span><small data-i18n="s10o2s">score 2</small></button>
+              <button class="chip" type="button" data-value="3"><span data-i18n="s10o3">20–60° flexion</span><small data-i18n="s10o3s">score 3</small></button>
+              <button class="chip" type="button" data-value="4"><span data-i18n="s10o4">&gt;60° flexion</span><small data-i18n="s10o4s">score 4</small></button>
+            </div>
+            <label class="adjust-row" data-adjust="trunkTwisted"><input type="checkbox"><span data-i18n="a10a">Trunk is twisted</span><span class="adjust-tag">+1</span></label>
+            <label class="adjust-row" data-adjust="trunkSide"><input type="checkbox"><span data-i18n="a10b">Trunk is side bending</span><span class="adjust-tag">+1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">11</span><span data-i18n="s11">Legs</span></div>
+            <div class="chips" data-group="legs">
+              <button class="chip" type="button" data-value="1"><span data-i18n="s11o1">Legs and feet supported</span><small data-i18n="s11o1s">score 1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s11o2">Not supported</span><small data-i18n="s11o2s">score 2</small></button>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">13</span><span data-i18n="s13">Muscle use (neck/trunk/leg)</span></div>
+            <label class="adjust-row" data-adjust="muscleB"><input type="checkbox"><span data-i18n="a13a">Mainly static (held &gt;1 min) or repeated ≥4x/min</span><span class="adjust-tag">+1</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-label"><span class="num">14</span><span data-i18n="s14">Force / load (neck/trunk/leg)</span></div>
+            <div class="chips" data-group="forceB">
+              <button class="chip" type="button" data-value="0"><span data-i18n="s14o1">&lt;4.4 lb, intermittent</span><small>+0</small></button>
+              <button class="chip" type="button" data-value="1"><span data-i18n="s14o2">4.4–22 lb, intermittent</span><small>+1</small></button>
+              <button class="chip" type="button" data-value="2"><span data-i18n="s14o3">4.4–22 lb, static / repeated</span><small>+2</small></button>
+              <button class="chip" type="button" data-value="3"><span data-i18n="s14o4">&gt;22 lb, or repeated / shock</span><small>+3</small></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="readout">
+        <div class="final-panel">
+          <div class="final-eyebrow" data-i18n="finalEyebrow">Table C — Final Score</div>
+          <div class="final-score" id="finalScore">—</div>
+          <div class="final-verdict" id="finalVerdict"></div>
+          <div class="final-action" id="finalAction"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="label" style="font-size:13px;" data-i18n="readoutLabel">Intermediate scores</div>
+          </div>
+          <div class="panel-body" style="gap:8px;padding:14px;">
+            <div class="score-row"><span class="k" data-i18n="rowPostureA">Posture score A (Table A)</span><span class="v" id="postureA">—</span></div>
+            <div class="score-row"><span class="k" data-i18n="rowWristArm">Wrist &amp; arm score</span><span class="v" id="wristArmScore">—</span></div>
+            <div class="score-row"><span class="k" data-i18n="rowPostureB">Posture score B (Table B)</span><span class="v" id="postureB">—</span></div>
+            <div class="score-row"><span class="k" data-i18n="rowNTL">Neck/trunk/leg score</span><span class="v" id="ntlScore">—</span></div>
+          </div>
+        </div>
+
+        <div class="silhouette-wrap">
+          <div class="cap" data-i18n="silCap">LIVE POSTURE READOUT</div>
+          <svg viewBox="0 0 200 260" width="100%" height="220" aria-label="Posture silhouette">
+            <line id="silTrunk" x1="100" y1="150" x2="100" y2="90" stroke="#3D6E93" stroke-width="10" stroke-linecap="round"></line>
+            <line id="silNeck" x1="100" y1="90" x2="100" y2="60" stroke="#3D6E93" stroke-width="8" stroke-linecap="round"></line>
+            <circle cx="100" cy="48" r="14" fill="#1C3049" stroke="#2E4A63" stroke-width="2"></circle>
+            <line id="silUpper" x1="100" y1="98" x2="140" y2="120" stroke="#3D6E93" stroke-width="9" stroke-linecap="round"></line>
+            <line id="silLower" x1="140" y1="120" x2="150" y2="160" stroke="#3D6E93" stroke-width="8" stroke-linecap="round"></line>
+            <circle id="silWrist" cx="150" cy="160" r="6" fill="#3D6E93"></circle>
+            <line id="silLeg1" x1="100" y1="150" x2="88" y2="220" stroke="#3D6E93" stroke-width="9" stroke-linecap="round"></line>
+            <line id="silLeg2" x1="100" y1="150" x2="112" y2="220" stroke="#3D6E93" stroke-width="9" stroke-linecap="round"></line>
+            <line x1="60" y1="228" x2="140" y2="228" stroke="#2E4A63" stroke-width="2" stroke-dasharray="3,4"></line>
+          </svg>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      <span data-i18n="footerRef">Based on RULA: a survey method for the investigation of work-related upper limb disorders — McAtamney &amp; Corlett, Applied Ergonomics 1993, 24(2), 91–99.</span>
+      <span data-i18n="footerHint">Tip: use Load example to demo a high-risk posture, then adjust one variable at a time to show students how the score moves.</span>
+    </footer>
+  </div>
+
+  <script>
+    const I18N = {
+      en: {
+        eyebrow: 'Ergonomics Lab — Instrument 01',
+        title: 'RULA Assessment Calculator',
+        subtitle: 'Rapid Upper Limb Assessment, worked step by step. Select the observed posture for each body region; scores update live using McAtamney & Corlett’s original scoring tables.',
+        loadExample: 'Load example',
+        reset: 'Reset',
+        print: 'Print',
+        sectionA: 'A — Arm & Wrist Analysis',
+        sectionB: 'B — Neck, Trunk & Leg Analysis',
+        s1: 'Upper arm position',
+        s1o1: '20° ext – 20° flex',
+        s1o1s: 'score 1',
+        s1o2: '>20° ext, or 20–45° flex',
+        s1o2s: 'score 2',
+        s1o3: '45–90° flexion',
+        s1o3s: 'score 3',
+        s1o4: '>90° flexion',
+        s1o4s: 'score 4',
+        a1a: 'Shoulder is raised',
+        a1b: 'Upper arm is abducted',
+        a1c: 'Arm is supported / leaning',
+        s2: 'Lower arm position',
+        s2o1: '60–100°',
+        s2o1s: 'score 1',
+        s2o2: '<60° or >100°',
+        s2o2s: 'score 2',
+        a2a: 'Working across midline or out to side',
+        s3: 'Wrist position',
+        s3o1: '0° (neutral)',
+        s3o1s: 'score 1',
+        s3o2: '0–15° flex / ext',
+        s3o2s: 'score 2',
+        s3o3: '>15° flex / ext',
+        s3o3s: 'score 3',
+        a3a: 'Wrist is bent from midline',
+        s4: 'Wrist twist',
+        s4o1: 'Mid-range of twist',
+        s4o1s: 'score 1',
+        s4o2: 'At / near end of range',
+        s4o2s: 'score 2',
+        s6: 'Muscle use (arm/wrist)',
+        a6a: 'Mainly static (held >1 min) or repeated ≥4x/min',
+        s7: 'Force / load (arm/wrist)',
+        s7o1: '<4.4 lb, intermittent',
+        s7o2: '4.4–22 lb, intermittent',
+        s7o3: '4.4–22 lb, static / repeated',
+        s7o4: '>22 lb, or repeated / shock',
+        s9: 'Neck position',
+        s9o1: '0–10° flexion',
+        s9o1s: 'score 1',
+        s9o2: '10–20° flexion',
+        s9o2s: 'score 2',
+        s9o3: '>20° flexion',
+        s9o3s: 'score 3',
+        s9o4: 'In extension',
+        s9o4s: 'score 4',
+        a9a: 'Neck is twisted',
+        a9b: 'Neck is side bending',
+        s10: 'Trunk position',
+        s10o1: 'Sitting, well supported, 0°',
+        s10o1s: 'score 1',
+        s10o2: '0–20° flexion',
+        s10o2s: 'score 2',
+        s10o3: '20–60° flexion',
+        s10o3s: 'score 3',
+        s10o4: '>60° flexion',
+        s10o4s: 'score 4',
+        a10a: 'Trunk is twisted',
+        a10b: 'Trunk is side bending',
+        s11: 'Legs',
+        s11o1: 'Legs and feet supported',
+        s11o1s: 'score 1',
+        s11o2: 'Not supported',
+        s11o2s: 'score 2',
+        s13: 'Muscle use (neck/trunk/leg)',
+        a13a: 'Mainly static (held >1 min) or repeated ≥4x/min',
+        s14: 'Force / load (neck/trunk/leg)',
+        s14o1: '<4.4 lb, intermittent',
+        s14o2: '4.4–22 lb, intermittent',
+        s14o3: '4.4–22 lb, static / repeated',
+        s14o4: '>22 lb, or repeated / shock',
+        finalEyebrow: 'Table C — Final Score',
+        readoutLabel: 'Intermediate scores',
+        rowPostureA: 'Posture score A (Table A)',
+        rowWristArm: 'Wrist & arm score',
+        rowPostureB: 'Posture score B (Table B)',
+        rowNTL: 'Neck/trunk/leg score',
+        silCap: 'LIVE POSTURE READOUT',
+        footerRef: 'Based on RULA: a survey method for the investigation of work-related upper limb disorders — McAtamney & Corlett, Applied Ergonomics 1993, 24(2), 91–99.',
+        footerHint: 'Tip: use Load example to demo a high-risk posture, then adjust one variable at a time to show students how the score moves.',
+        verdict1: 'Acceptable posture',
+        verdict2: 'Further investigation, change may be needed',
+        verdict3: 'Further investigation, change soon',
+        verdict4: 'Investigate and implement change',
+        action1: 'No action required at this time.',
+        action2: 'Posture may be causing strain — investigate further and consider changes.',
+        action3: 'Investigate soon and make changes in the near future.',
+        action4: 'This posture requires investigation and change now.',
+        selectAll: 'Select every step to compute a final score.',
+        incomplete: 'Incomplete — '
+      },
+      es: {
+        eyebrow: 'Laboratorio de Ergonomía — Instrumento 01',
+        title: 'Calculadora de Evaluación RULA',
+        subtitle: 'Evaluación Rápida de Miembro Superior, paso a paso. Seleccione la postura observada en cada región corporal; los puntajes se actualizan en vivo usando las tablas originales de McAtamney & Corlett.',
+        loadExample: 'Cargar ejemplo',
+        reset: 'Reiniciar',
+        print: 'Imprimir',
+        sectionA: 'A — Análisis de brazo y muñeca',
+        sectionB: 'B — Análisis de cuello, torso y piernas',
+        s1: 'Posición de brazo',
+        s1o1: '20° ext – 20° flex',
+        s1o1s: 'puntaje 1',
+        s1o2: '>20° ext, o 20–45° flex',
+        s1o2s: 'puntaje 2',
+        s1o3: '45–90° flexión',
+        s1o3s: 'puntaje 3',
+        s1o4: '>90° flexión',
+        s1o4s: 'puntaje 4',
+        a1a: 'Hombro levantado',
+        a1b: 'Brazo en abducción',
+        a1c: 'Brazo apoyado o recargado',
+        s2: 'Posición de antebrazo',
+        s2o1: '60–100°',
+        s2o1s: 'puntaje 1',
+        s2o2: '<60° o >100°',
+        s2o2s: 'puntaje 2',
+        a2a: 'Cruza línea media o sale a los costados',
+        s3: 'Posición de muñeca',
+        s3o1: '0° (neutral)',
+        s3o1s: 'puntaje 1',
+        s3o2: '0–15° flex / ext',
+        s3o2s: 'puntaje 2',
+        s3o3: '>15° flex / ext',
+        s3o3s: 'puntaje 3',
+        a3a: 'Muñeca desviada de línea media',
+        s4: 'Torcedura de muñeca',
+        s4o1: 'Rango medio',
+        s4o1s: 'puntaje 1',
+        s4o2: 'Cerca o al final del rango',
+        s4o2s: 'puntaje 2',
+        s6: 'Uso muscular (brazo/muñeca)',
+        a6a: 'Estática (>1 min) o repetida ≥4x/min',
+        s7: 'Fuerza / carga (brazo/muñeca)',
+        s7o1: '<4.4 lb, intermitente',
+        s7o2: '4.4–22 lb, intermitente',
+        s7o3: '4.4–22 lb, estática / repetida',
+        s7o4: '>22 lb, repetida o con choque',
+        s9: 'Posición del cuello',
+        s9o1: '0–10° flexión',
+        s9o1s: 'puntaje 1',
+        s9o2: '10–20° flexión',
+        s9o2s: 'puntaje 2',
+        s9o3: '>20° flexión',
+        s9o3s: 'puntaje 3',
+        s9o4: 'En extensión',
+        s9o4s: 'puntaje 4',
+        a9a: 'Cuello torcido',
+        a9b: 'Cuello inclinado de lado',
+        s10: 'Posición del torso',
+        s10o1: 'Sentado, bien apoyado, 0°',
+        s10o1s: 'puntaje 1',
+        s10o2: '0–20° flexión',
+        s10o2s: 'puntaje 2',
+        s10o3: '20–60° flexión',
+        s10o3s: 'puntaje 3',
+        s10o4: '>60° flexión',
+        s10o4s: 'puntaje 4',
+        a10a: 'Torso torcido',
+        a10b: 'Torso inclinado de lado',
+        s11: 'Piernas',
+        s11o1: 'Piernas y pies apoyados',
+        s11o1s: 'puntaje 1',
+        s11o2: 'Sin apoyo',
+        s11o2s: 'puntaje 2',
+        s13: 'Uso muscular (cuello/torso/pierna)',
+        a13a: 'Estática (>1 min) o repetida ≥4x/min',
+        s14: 'Fuerza / carga (cuello/torso/pierna)',
+        s14o1: '<4.4 lb, intermitente',
+        s14o2: '4.4–22 lb, intermitente',
+        s14o3: '4.4–22 lb, estática / repetida',
+        s14o4: '>22 lb, repetida o con choque',
+        finalEyebrow: 'Tabla C — Puntaje final',
+        readoutLabel: 'Puntajes intermedios',
+        rowPostureA: 'Puntaje postura A (Tabla A)',
+        rowWristArm: 'Puntaje muñeca y brazo',
+        rowPostureB: 'Puntaje postura B (Tabla B)',
+        rowNTL: 'Puntaje cuello/torso/pierna',
+        silCap: 'LECTURA DE POSTURA EN VIVO',
+        footerRef: 'Basado en RULA: un método de evaluación para la investigación de trastornos de miembro superior — McAtamney & Corlett, Applied Ergonomics 1993, 24(2), 91–99.',
+        footerHint: 'Sugerencia: use Cargar ejemplo para mostrar una postura de alto riesgo, luego cambie una variable a la vez para mostrar a los estudiantes cómo se mueve el puntaje.',
+        verdict1: 'Postura aceptable',
+        verdict2: 'Investigar más, podría requerir modificación',
+        verdict3: 'Investigar más, modificar pronto',
+        verdict4: 'Investigar e implementar modificaciones',
+        action1: 'No se requiere acción por el momento.',
+        action2: 'La postura puede causar tensión — investigue más y considere cambios.',
+        action3: 'Investigue pronto y haga cambios en el corto plazo.',
+        action4: 'Esta postura requiere investigación y cambio inmediato.',
+        selectAll: 'Seleccione cada paso para calcular un puntaje final.',
+        incomplete: 'Incompleto — '
+      }
+    };
+
+    const state = {
+      upperArm: null,
+      shoulderRaised: false,
+      abducted: false,
+      supported: false,
+      lowerArm: null,
+      acrossMidline: false,
+      wrist: null,
+      bentMidline: false,
+      wristTwist: null,
+      muscleA: false,
+      forceA: null,
+      neck: null,
+      neckTwisted: false,
+      neckSide: false,
+      trunk: null,
+      trunkTwisted: false,
+      trunkSide: false,
+      legs: null,
+      muscleB: false,
+      forceB: null
+    };
+
+    const tableA = [
+      [[1,2,2,2,2,3,3,3],[2,2,2,2,3,3,3,3],[2,3,3,3,3,3,4,4]],
+      [[2,3,3,3,3,4,4,4],[3,3,3,3,3,4,4,4],[3,4,4,4,4,4,5,5]],
+      [[3,3,4,4,4,4,5,5],[3,4,4,4,4,4,5,5],[4,4,4,4,4,5,5,5]],
+      [[4,4,4,4,4,5,5,5],[4,4,4,4,4,5,5,5],[4,4,4,5,5,5,6,6]],
+      [[5,5,5,5,5,6,6,7],[5,6,6,6,6,7,7,7],[6,6,6,7,7,7,7,8]],
+      [[7,7,7,7,7,8,8,9],[8,8,8,8,8,9,9,9],[9,9,9,9,9,9,9,9]]
+    ];
+
+    const tableB = [
+      [1,3,2,3,3,4,5,5,6,6,7,7],
+      [2,3,2,3,4,5,5,5,6,7,7,7],
+      [3,3,3,4,4,5,5,6,6,7,7,7],
+      [5,5,5,6,6,7,7,7,7,7,8,8],
+      [7,7,7,7,7,8,8,8,8,8,8,8],
+      [8,8,8,8,8,8,8,9,9,9,9,9]
+    ];
+
+    const tableC = [
+      [1,2,3,3,4,5,5],
+      [2,2,3,4,4,5,5],
+      [3,3,3,4,4,5,6],
+      [3,3,3,4,5,6,6],
+      [4,4,4,5,6,7,7],
+      [4,4,5,6,6,7,7],
+      [5,5,6,6,7,7,7],
+      [5,5,6,7,7,7,7]
+    ];
+
+    let lang = 'en';
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    function syncUI() {
+      document.querySelectorAll('.chip').forEach((chip) => {
+        const group = chip.closest('.chips')?.getAttribute('data-group');
+        const value = Number(chip.getAttribute('data-value'));
+        const isActive = group && state[group] === value;
+        chip.classList.toggle('active', isActive);
+      });
+
+      document.querySelectorAll('.adjust-row').forEach((row) => {
+        const key = row.getAttribute('data-adjust');
+        const checked = Boolean(state[key]);
+        const input = row.querySelector('input');
+        if (input) input.checked = checked;
+        row.classList.toggle('on', checked);
+      });
+    }
+
+    function updateSilhouette() {
+      const colorFor = (score, max) => {
+        if (score === null) return '#3D6E93';
+        const ratio = clamp(score, 1, max) / max;
+        if (ratio <= 0.34) return '#4FA579';
+        if (ratio <= 0.67) return '#E0A527';
+        return '#D1495B';
+      };
+
+      document.getElementById('silUpper').setAttribute('stroke', colorFor(state.upperArm, 4));
+      document.getElementById('silLower').setAttribute('stroke', colorFor(state.lowerArm, 2));
+      document.getElementById('silWrist').setAttribute('fill', colorFor(state.wrist, 3));
+      document.getElementById('silNeck').setAttribute('stroke', colorFor(state.neck, 4));
+      document.getElementById('silTrunk').setAttribute('stroke', colorFor(state.trunk, 4));
+      const legColor = colorFor(state.legs, 2);
+      document.getElementById('silLeg1').setAttribute('stroke', legColor);
+      document.getElementById('silLeg2').setAttribute('stroke', legColor);
+    }
+
+    function compute() {
+      const dict = I18N[lang];
+      const required = ['upperArm', 'lowerArm', 'wrist', 'wristTwist', 'forceA', 'neck', 'trunk', 'legs', 'forceB'];
+      const complete = required.every((key) => state[key] !== null);
+
+      updateSilhouette();
+
+      if (!complete) {
+        setText('postureA', '—');
+        setText('wristArmScore', '—');
+        setText('postureB', '—');
+        setText('ntlScore', '—');
+        setText('finalScore', '—');
+        document.getElementById('finalVerdict').textContent = dict.selectAll;
+        document.getElementById('finalVerdict').className = 'final-verdict';
+        document.getElementById('finalAction').textContent = '';
+        return;
+      }
+
+      const upperArmScore = state.upperArm + (state.shoulderRaised ? 1 : 0) + (state.abducted ? 1 : 0) - (state.supported ? 1 : 0);
+      const lowerArmScore = state.lowerArm + (state.acrossMidline ? 1 : 0);
+      const wristScore = state.wrist + (state.bentMidline ? 1 : 0);
+
+      const uaIndex = clamp(upperArmScore, 1, 6) - 1;
+      const laIndex = clamp(lowerArmScore, 1, 3) - 1;
+      const wristIndex = (clamp(wristScore, 1, 4) - 1) * 2 + (state.wristTwist - 1);
+      const postureA = tableA[uaIndex][laIndex][wristIndex];
+      const wristArmScore = postureA + (state.muscleA ? 1 : 0) + state.forceA;
+
+      const neckScore = state.neck + (state.neckTwisted ? 1 : 0) + (state.neckSide ? 1 : 0);
+      const trunkScore = state.trunk + (state.trunkTwisted ? 1 : 0) + (state.trunkSide ? 1 : 0);
+      const neckIndex = clamp(neckScore, 1, 6) - 1;
+      const trunkColumn = (clamp(trunkScore, 1, 6) - 1) * 2 + (state.legs - 1);
+      const postureB = tableB[neckIndex][trunkColumn];
+      const ntlScore = postureB + (state.muscleB ? 1 : 0) + state.forceB;
+
+      const rowIndex = clamp(wristArmScore, 1, 8) - 1;
+      const colIndex = clamp(ntlScore, 1, 7) - 1;
+      const finalScore = tableC[rowIndex][colIndex];
+
+      setText('postureA', postureA);
+      setText('wristArmScore', wristArmScore);
+      setText('postureB', postureB);
+      setText('ntlScore', ntlScore);
+      setText('finalScore', finalScore);
+
+      let band = 1;
+      if (finalScore <= 2) band = 1;
+      else if (finalScore <= 4) band = 2;
+      else if (finalScore <= 6) band = 3;
+      else band = 4;
+
+      const finalEl = document.getElementById('finalScore');
+      finalEl.className = 'final-score band-' + band;
+      const verdictEl = document.getElementById('finalVerdict');
+      verdictEl.textContent = dict['verdict' + band];
+      verdictEl.className = 'final-verdict band-' + band + '-bg';
+      document.getElementById('finalAction').textContent = dict['action' + band];
+    }
+
+    function applyI18n() {
+      const dict = I18N[lang];
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key] !== undefined) {
+          el.textContent = dict[key];
+        }
+      });
+      document.getElementById('langBtn').textContent = lang === 'en' ? 'ES' : 'EN';
+      document.documentElement.lang = lang;
+      compute();
+    }
+
+    function resetAll() {
+      Object.keys(state).forEach((key) => {
+        state[key] = typeof state[key] === 'boolean' ? false : null;
+      });
+      syncUI();
+      compute();
+    }
+
+    function loadExample() {
+      resetAll();
+      Object.assign(state, {
+        upperArm: 3,
+        shoulderRaised: true,
+        lowerArm: 2,
+        acrossMidline: true,
+        wrist: 2,
+        bentMidline: true,
+        wristTwist: 2,
+        muscleA: true,
+        forceA: 1,
+        neck: 3,
+        neckTwisted: true,
+        trunk: 3,
+        trunkSide: true,
+        legs: 2,
+        muscleB: true,
+        forceB: 1
+      });
+      syncUI();
+      compute();
+    }
+
+    function wireControls() {
+      document.querySelectorAll('.chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const group = chip.closest('.chips')?.getAttribute('data-group');
+          if (!group) return;
+          state[group] = Number(chip.getAttribute('data-value'));
+          syncUI();
+          compute();
+        });
+      });
+
+      document.querySelectorAll('.adjust-row').forEach((row) => {
+        const key = row.getAttribute('data-adjust');
+        const input = row.querySelector('input');
+        input.addEventListener('change', () => {
+          state[key] = input.checked;
+          syncUI();
+          compute();
+        });
+      });
+
+      document.getElementById('langBtn').addEventListener('click', () => {
+        lang = lang === 'en' ? 'es' : 'en';
+        applyI18n();
+      });
+
+      document.getElementById('resetBtn').addEventListener('click', resetAll);
+      document.getElementById('exampleBtn').addEventListener('click', loadExample);
+      document.getElementById('printBtn').addEventListener('click', () => window.print());
+    }
+
+    wireControls();
+    applyI18n();
+    syncUI();
+  </script>
+</body>
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
