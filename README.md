@@ -4,5 +4,5 @@ Se encuentran las herramientas:
 - RULA
 - REBA
 - OWAS
-- MAC
-- NIOSH
+- MAC (TBD)
+- NIOSH (TBD)
