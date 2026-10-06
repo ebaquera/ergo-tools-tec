@@ -1,0 +1,1150 @@
+<!DOCTYPE html> 
+
+<html lang="en"> 
+
+<head> 
+
+<meta charset="UTF-8"> 
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+<title>OWAS Assessment Calculator</title> 
+
+<link rel="preconnect" href="https://fonts.googleapis.com"> 
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet"> 
+
+<style> 
+
+  :root{ 
+
+    --bg: #0E1A28; 
+
+    --bg-grid: rgba(120,170,220,0.055); 
+
+    --panel: #15263A; 
+
+    --panel-raised: #1C3049; 
+
+    --line: #2E4A63; 
+
+    --ink: #E7EEF5; 
+
+    --ink-dim: #92A7BC; 
+
+    --cyan: #63A6D9; 
+
+    --cyan-dim: #3D6E93; 
+
+    --amber: #E0A527; 
+
+    --amber-dim: #7A5C1B; 
+
+    --orange: #E08A3D; 
+
+    --orange-dim: #7A421B; 
+
+    --red: #D1495B; 
+
+    --red-dim: #6E2530; 
+
+    --green: #4FA579; 
+
+    --green-dim: #245038; 
+
+    --mono: 'IBM Plex Mono', monospace; 
+
+    --sans: 'IBM Plex Sans', sans-serif; 
+
+    --cond: 'IBM Plex Sans Condensed', sans-serif; 
+
+  } 
+
+ 
+
+  *{box-sizing:border-box;} 
+
+  html,body{margin:0;padding:0;} 
+
+  body{ 
+
+    background: 
+
+      linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0/28px 28px, 
+
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0/28px 28px, 
+
+      var(--bg); 
+
+    color:var(--ink); 
+
+    font-family:var(--sans); 
+
+    min-height:100vh; 
+
+    padding: 28px 20px 80px; 
+
+  } 
+
+ 
+
+  .wrap{max-width:1180px;margin:0 auto;} 
+
+ 
+
+  header{ 
+
+    display:flex;justify-content:space-between;align-items:flex-end; 
+
+    gap:20px;flex-wrap:wrap; 
+
+    border-bottom:1px solid var(--line); 
+
+    padding-bottom:18px;margin-bottom:26px; 
+
+  } 
+
+  .title-block{display:flex;flex-direction:column;gap:6px;} 
+
+  .eyebrow{ 
+
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em; 
+
+    color:var(--cyan);text-transform:uppercase; 
+
+  } 
+
+  h1{ 
+
+    font-family:var(--cond);font-weight:700;font-size:34px;margin:0; 
+
+    letter-spacing:.01em; 
+
+  } 
+
+  .subtitle{color:var(--ink-dim);font-size:13.5px;max-width:560px;line-height:1.5;} 
+
+  .header-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;} 
+
+  .btn{ 
+
+    font-family:var(--mono);font-size:12px;letter-spacing:.04em; 
+
+    background:var(--panel-raised);color:var(--ink); 
+
+    border:1px solid var(--line);border-radius:3px; 
+
+    padding:9px 14px;cursor:pointer;transition:all .15s ease; 
+
+  } 
+
+  .btn:hover{border-color:var(--cyan);color:var(--cyan);} 
+
+  .btn.primary{background:var(--cyan-dim);border-color:var(--cyan);color:#fff;} 
+
+  .btn.primary:hover{background:var(--cyan);} 
+
+ 
+
+  .grid{ 
+
+    display:grid; 
+
+    grid-template-columns: 1fr 1fr 320px; 
+
+    gap:20px; 
+
+    align-items:start; 
+
+  } 
+
+  @media (max-width: 1000px){
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .readout{position:static;grid-column:1 / -1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+    .final-panel{grid-row:span 2;}
+  }
+
+  @media (max-width: 620px){
+    body{padding:20px 12px 36px;}
+    h1{font-size:29px;}
+    .grid, .readout{grid-template-columns:1fr;}
+    .readout{grid-column:auto;}
+    .final-panel{grid-row:auto;}
+    .header-controls{width:100%;}
+    .btn{flex:1 1 calc(50% - 10px);}
+    .chip{flex:1 1 calc(50% - 6px);}
+  }
+
+  .panel{ 
+
+    background:var(--panel); 
+
+    border:1px solid var(--line); 
+
+    border-radius:6px; 
+
+    overflow:hidden; 
+
+  } 
+
+  .panel-head{ 
+
+    display:flex;align-items:center;justify-content:space-between; 
+
+    padding:14px 18px;border-bottom:1px solid var(--line); 
+
+    background:var(--panel-raised); 
+
+  } 
+
+  .panel-head .label{font-family:var(--cond);font-weight:700;font-size:16px;} 
+
+  .panel-head .idx{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.1em;} 
+
+  .panel-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:16px;} 
+
+ 
+
+  .step{border-bottom:1px dashed var(--line);padding-bottom:14px;} 
+
+  .step:last-child{border-bottom:none;padding-bottom:0;} 
+
+  .step-label{ 
+
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-dim); 
+
+    letter-spacing:.03em;margin-bottom:8px;display:flex;gap:8px;align-items:baseline; 
+
+  } 
+
+  .step-label .num{color:var(--cyan);font-weight:600;} 
+
+  .step-label .digit{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--cyan); 
+
+    background:rgba(99,166,217,.1);border:1px solid var(--cyan-dim);border-radius:2px;padding:1px 6px;} 
+
+ 
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;} 
+
+  .chip{ 
+
+    font-family:var(--sans);font-size:12.5px; 
+
+    background:transparent;color:var(--ink-dim); 
+
+    border:1px solid var(--line);border-radius:4px; 
+
+    padding:6px 10px 6px 6px;cursor:pointer;transition:all .12s ease; 
+
+    line-height:1.3;text-align:left; 
+
+    display:flex;align-items:center;gap:8px; 
+
+  } 
+
+  .chip:hover{border-color:var(--cyan-dim);color:var(--ink);} 
+
+  .chip:hover .chip-icon{background:rgba(99,166,217,.08);} 
+
+  .chip.active{ 
+
+    background:var(--cyan-dim);border-color:var(--cyan);color:#fff;font-weight:500; 
+
+  } 
+
+  .chip.active .chip-icon{background:rgba(255,255,255,.12);} 
+
+  .chip small{display:block;font-family:var(--mono);font-size:10px;opacity:.8;margin-top:2px;} 
+
+  .chip-icon{ 
+
+    flex:0 0 auto;width:34px;height:34px;border-radius:3px; 
+
+    background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center; 
+
+    transition:background .12s ease; 
+
+  } 
+
+  .chip-icon svg{color:inherit;} 
+
+  .chip-label{flex:1;} 
+
+ 
+
+  .readout{position:sticky;top:20px;display:flex;flex-direction:column;gap:14px;} 
+
+  .score-row{ 
+
+    display:flex;justify-content:space-between;align-items:center; 
+
+    padding:9px 14px;background:var(--panel-raised);border:1px solid var(--line); 
+
+    border-radius:4px;font-family:var(--mono);font-size:12px; 
+
+  } 
+
+  .score-row .k{color:var(--ink-dim);} 
+
+  .score-row .v{color:var(--cyan);font-weight:600;font-size:14px;} 
+
+ 
+
+  .final-panel{ 
+
+    background:var(--panel);border:1px solid var(--line);border-radius:6px; 
+
+    padding:22px;text-align:center;position:relative;overflow:hidden; 
+
+  } 
+
+  .final-panel::before{ 
+
+    content:"";position:absolute;inset:0; 
+
+    background:repeating-linear-gradient(135deg, rgba(255,255,255,.02) 0 2px, transparent 2px 14px); 
+
+    pointer-events:none; 
+
+  } 
+
+  .final-eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--ink-dim);text-transform:uppercase;} 
+
+  .final-score{ 
+
+    font-family:var(--mono);font-weight:700;font-size:76px;line-height:1;margin:10px 0 6px; 
+
+    transition:color .2s ease; 
+
+  } 
+
+  .final-verdict{ 
+
+    font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.02em; 
+
+    padding:6px 10px;border-radius:3px;display:inline-block;margin-bottom:8px; 
+
+  } 
+
+  .final-action{font-size:12.5px;color:var(--ink-dim);line-height:1.5;} 
+
+  .posture-code{ 
+
+    font-family:var(--mono);font-size:12px;color:var(--ink-dim);letter-spacing:.08em; 
+
+    margin-top:10px;padding-top:10px;border-top:1px dashed var(--line); 
+
+  } 
+
+  .posture-code .code{color:var(--cyan);font-weight:600;font-size:15px;} 
+
+ 
+
+  .band-1{color:var(--green);} .band-1-bg{background:var(--green-dim);color:#bdf0d4;} 
+
+  .band-2{color:var(--amber);} .band-2-bg{background:var(--amber-dim);color:#ffe1a3;} 
+
+  .band-3{color:var(--orange);} .band-3-bg{background:var(--orange-dim);color:#ffd0a3;} 
+
+  .band-4{color:var(--red);} .band-4-bg{background:var(--red-dim);color:#ffc3cb;} 
+
+ 
+
+  .silhouette-wrap{ 
+
+    background:var(--panel);border:1px solid var(--line);border-radius:6px; 
+
+    padding:16px; 
+
+  } 
+
+  .silhouette-wrap .cap{font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);letter-spacing:.08em;margin-bottom:8px;text-align:center;} 
+
+ 
+
+  footer{ 
+
+    max-width:1180px;margin:36px auto 0;padding-top:16px;border-top:1px solid var(--line); 
+
+    font-family:var(--mono);font-size:11px;color:var(--ink-dim); 
+
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px; 
+
+  } 
+
+ 
+
+  @media print{ 
+
+    body{background:#fff;color:#000;padding:0;} 
+
+    .header-controls{display:none;} 
+
+    .grid{grid-template-columns:1fr 1fr;} 
+
+    .readout{grid-column:span 2;position:static;} 
+
+  } 
+
+</style> 
+
+</head> 
+
+<body> 
+
+<div class="wrap"> 
+
+ 
+
+  <header> 
+
+    <div class="title-block"> 
+
+      <div class="eyebrow" data-i18n="eyebrow">Ergonomics Lab &mdash; Instrument 03</div> 
+
+      <h1 data-i18n="title">OWAS Assessment Calculator</h1> 
+
+      <div class="subtitle" data-i18n="subtitle">Ovako Working Posture Analysis System. Code the back, arms, legs and load; the action category updates live from the original OWAS lookup table. Credit to the department of Industrial Engineering of Tec de Monterrey campus San Luis Potosí for initial idea</div> 
+
+    </div> 
+
+    <div class="header-controls"> 
+
+      <button class="btn" id="langBtn">ES</button> 
+
+      <button class="btn" id="exampleBtn" data-i18n="loadExample">Load example</button> 
+
+      <button class="btn" id="resetBtn" data-i18n="reset">Reset</button> 
+
+      <button class="btn primary" id="printBtn" data-i18n="print">Print</button> 
+
+    </div> 
+
+  </header> 
+
+ 
+
+  <div class="grid"> 
+
+ 
+
+    <!-- PANEL 1: BACK & ARMS --> 
+
+    <div class="panel"> 
+
+      <div class="panel-head"> 
+
+        <div class="label" data-i18n="sectionA">Back &amp; Arms</div> 
+
+        <div class="idx">CODE 1&ndash;2</div> 
+
+      </div> 
+
+      <div class="panel-body"> 
+
+ 
+
+        <div class="step"> 
+
+          <div class="step-label"><span class="num">01</span><span data-i18n="s1">Back position</span></div> 
+
+          <div class="chips" data-group="back"> 
+
+            <button class="chip" data-value="1" data-i18n="s1o1">Straight<small>digit 1</small></button> 
+
+            <button class="chip" data-value="2" data-i18n="s1o2">Bent<small>digit 2</small></button> 
+
+            <button class="chip" data-value="3" data-i18n="s1o3">Twisted<small>digit 3</small></button> 
+
+            <button class="chip" data-value="4" data-i18n="s1o4">Bent and twisted<small>digit 4</small></button> 
+
+          </div> 
+
+        </div> 
+
+ 
+
+        <div class="step"> 
+
+          <div class="step-label"><span class="num">02</span><span data-i18n="s2">Arms position</span></div> 
+
+          <div class="chips" data-group="arms"> 
+
+            <button class="chip" data-value="1" data-i18n="s2o1">Both arms below shoulder<small>digit 1</small></button> 
+
+            <button class="chip" data-value="2" data-i18n="s2o2">One arm at/above shoulder<small>digit 2</small></button> 
+
+            <button class="chip" data-value="3" data-i18n="s2o3">Both arms at/above shoulder<small>digit 3</small></button> 
+
+          </div> 
+
+        </div> 
+
+ 
+
+      </div> 
+
+    </div> 
+
+ 
+
+    <!-- PANEL 2: LEGS & LOAD --> 
+
+    <div class="panel"> 
+
+      <div class="panel-head"> 
+
+        <div class="label" data-i18n="sectionB">Legs &amp; Load</div> 
+
+        <div class="idx">CODE 3&ndash;4</div> 
+
+      </div> 
+
+      <div class="panel-body"> 
+
+ 
+
+        <div class="step"> 
+
+          <div class="step-label"><span class="num">03</span><span data-i18n="s3">Legs position</span></div> 
+
+          <div class="chips" data-group="legs"> 
+
+            <button class="chip" data-value="1" data-i18n="s3o1">Sitting<small>digit 1</small></button> 
+
+            <button class="chip" data-value="2" data-i18n="s3o2">Standing, two straight legs<small>digit 2</small></button> 
+
+            <button class="chip" data-value="3" data-i18n="s3o3">Standing, one straight leg<small>digit 3</small></button> 
+
+            <button class="chip" data-value="4" data-i18n="s3o4">Standing / squatting, two bent legs<small>digit 4</small></button> 
+
+            <button class="chip" data-value="5" data-i18n="s3o5">Standing on one bent leg<small>digit 5</small></button> 
+
+            <button class="chip" data-value="6" data-i18n="s3o6">Kneeling<small>digit 6</small></button> 
+
+            <button class="chip" data-value="7" data-i18n="s3o7">Walking<small>digit 7</small></button> 
+
+          </div> 
+
+        </div> 
+
+ 
+
+        <div class="step"> 
+
+          <div class="step-label"><span class="num">04</span><span data-i18n="s4">Load / force</span></div> 
+
+          <div class="chips" data-group="load"> 
+
+            <button class="chip" data-value="1" data-i18n="s4o1">&le; 10 kg<small>digit 1</small></button> 
+
+            <button class="chip" data-value="2" data-i18n="s4o2">10&ndash;20 kg<small>digit 2</small></button> 
+
+            <button class="chip" data-value="3" data-i18n="s4o3">&gt; 20 kg<small>digit 3</small></button> 
+
+          </div> 
+
+        </div> 
+
+ 
+
+      </div> 
+
+    </div> 
+
+ 
+
+    <!-- READOUT --> 
+
+    <div class="readout"> 
+
+      <div class="final-panel"> 
+
+        <div class="final-eyebrow" data-i18n="finalEyebrow">Action Category</div> 
+
+        <div class="final-score" id="finalScore">&mdash;</div> 
+
+        <div class="final-verdict" id="finalVerdict"></div> 
+
+        <div class="final-action" id="finalAction"></div> 
+
+        <div class="posture-code" id="postureCodeWrap" style="display:none;"> 
+
+          <span data-i18n="codeLabel">Posture code (Back-Arms-Legs-Load)</span><br> 
+
+          <span class="code" id="postureCode">&mdash;</span> 
+
+        </div> 
+
+      </div> 
+
+ 
+
+      <div class="silhouette-wrap"> 
+
+        <div class="cap" data-i18n="silCap">LIVE POSTURE READOUT</div> 
+
+        <svg viewBox="0 0 200 260" width="100%" height="220"> 
+
+          <line id="silTrunk" x1="100" y1="150" x2="100" y2="90" stroke="#3D6E93" stroke-width="10" stroke-linecap="round"/> 
+
+          <circle cx="100" cy="76" r="14" fill="#1C3049" stroke="#2E4A63" stroke-width="2"/> 
+
+          <line id="silArmL" x1="90" y1="100" x2="70" y2="130" stroke="#3D6E93" stroke-width="8" stroke-linecap="round"/> 
+
+          <line id="silArmR" x1="110" y1="100" x2="130" y2="130" stroke="#3D6E93" stroke-width="8" stroke-linecap="round"/> 
+
+          <line id="silLeg1" x1="100" y1="150" x2="88" y2="220" stroke="#3D6E93" stroke-width="9" stroke-linecap="round"/> 
+
+          <line id="silLeg2" x1="100" y1="150" x2="112" y2="220" stroke="#3D6E93" stroke-width="9" stroke-linecap="round"/> 
+
+          <line x1="60" y1="228" x2="140" y2="228" stroke="#2E4A63" stroke-width="2" stroke-dasharray="3,4"/> 
+
+        </svg> 
+
+      </div> 
+
+ 
+
+    </div> 
+
+ 
+
+  </div> 
+
+ 
+
+  <footer> 
+
+    <span data-i18n="footerRef">Based on the OWAS (Ovako Working Posture Analysis System) method — Karhu, Kansi &amp; Kuorinka, Applied Ergonomics 1977.</span> 
+
+    <span data-i18n="footerHint">Tip: use Load example to demo a high-risk posture code, then change one variable at a time to show students how the action category shifts.</span> 
+
+  </footer> 
+
+ 
+
+</div> 
+
+ 
+
+<script> 
+
+const I18N = { 
+
+  en: { 
+
+    eyebrow:"Ergonomics Lab — Instrument 03", 
+
+    title:"OWAS Assessment Calculator", 
+
+    subtitle:"Ovako Working Posture Analysis System. Code the back, arms, legs and load; the action category updates live from the original OWAS lookup table.  Credit to the departement of Industrial Engineering of Tec de Monterrey campus San Luis Potosí for initial idea", 
+
+    loadExample:"Load example", reset:"Reset", print:"Print", 
+
+    sectionA:"Back & Arms", sectionB:"Legs & Load", 
+
+    s1:"Back position", s1o1:"Straight", s1o2:"Bent", s1o3:"Twisted", s1o4:"Bent and twisted", 
+
+    s2:"Arms position", s2o1:"Both arms below shoulder", s2o2:"One arm at/above shoulder", s2o3:"Both arms at/above shoulder", 
+
+    s3:"Legs position", s3o1:"Sitting", s3o2:"Standing, two straight legs", s3o3:"Standing, one straight leg", 
+
+    s3o4:"Standing / squatting, two bent legs", s3o5:"Standing on one bent leg", s3o6:"Kneeling", s3o7:"Walking", 
+
+    s4:"Load / force", s4o1:"≤ 10 kg", s4o2:"10–20 kg", s4o3:"&gt; 20 kg", 
+
+    finalEyebrow:"Action Category", codeLabel:"Posture code (Back-Arms-Legs-Load)", 
+
+    silCap:"LIVE POSTURE READOUT", 
+
+    footerRef:"Based on the OWAS (Ovako Working Posture Analysis System) method — Karhu, Kansi & Kuorinka, Applied Ergonomics 1977.", 
+
+    footerHint:"Tip: use Load example to demo a high-risk posture code, then change one variable at a time to show students how the action category shifts.", 
+
+    verdicts:{1:"No action required",2:"Corrective actions in the near future",3:"Corrective actions as soon as possible",4:"Corrective actions required immediately"}, 
+
+    actions:{1:"This posture combination is not harmful to the musculoskeletal system.",2:"This combination has some harmful effect — plan changes for the near future.",3:"This combination is clearly harmful — corrective measures should be taken soon.",4:"This combination is extremely harmful — corrective measures must be taken immediately."}, 
+
+    selectAll:"Select back, arms, legs and load to compute a category." 
+
+  }, 
+
+  es: { 
+
+    eyebrow:"Laboratorio de Ergonomía — Instrumento 03", 
+
+    title:"Calculadora de Evaluación OWAS", 
+
+    subtitle:"Sistema Ovako de Análisis de Posturas de Trabajo. Codifique espalda, brazos, piernas y carga; la categoría de acción se actualiza en vivo con la tabla original de OWAS. Basado en la idea inicial del departamento de IIS del Tec de Monterrey campus San Luis Potosí", 
+
+    loadExample:"Cargar ejemplo", reset:"Reiniciar", print:"Imprimir", 
+
+    sectionA:"Espalda y brazos", sectionB:"Piernas y carga", 
+
+    s1:"Posición de espalda", s1o1:"Recta", s1o2:"Flexionada", s1o3:"Torcida", s1o4:"Flexionada y torcida", 
+
+    s2:"Posición de brazos", s2o1:"Ambos brazos bajo el hombro", s2o2:"Un brazo al nivel o sobre el hombro", s2o3:"Ambos brazos al nivel o sobre el hombro", 
+
+    s3:"Posición de piernas", s3o1:"Sentado", s3o2:"De pie, dos piernas rectas", s3o3:"De pie, una pierna recta", 
+
+    s3o4:"De pie o en cuclillas, dos piernas flexionadas", s3o5:"De pie sobre una pierna flexionada", s3o6:"Arrodillado", s3o7:"Caminando", 
+
+    s4:"Carga / fuerza", s4o1:"&le; 10 kg", s4o2:"10–20 kg", s4o3:"&gt; 20 kg", 
+
+    finalEyebrow:"Categoría de acción", codeLabel:"Código de postura (Espalda-Brazos-Piernas-Carga)", 
+
+    silCap:"LECTURA DE POSTURA EN VIVO", 
+
+    footerRef:"Basado en el método OWAS (Ovako Working Posture Analysis System) — Karhu, Kansi & Kuorinka, Applied Ergonomics 1977.", 
+
+    footerHint:"Sugerencia: use Cargar ejemplo para mostrar un código de postura de alto riesgo, luego cambie una variable a la vez para mostrar cómo cambia la categoría.", 
+
+    verdicts:{1:"No se requiere acción",2:"Acciones correctivas en un futuro cercano",3:"Acciones correctivas lo antes posible",4:"Acciones correctivas inmediatas"}, 
+
+    actions:{1:"Esta combinación de posturas no es dañina para el sistema musculoesquelético.",2:"Esta combinación tiene algún efecto dañino — planifique cambios para el futuro cercano.",3:"Esta combinación es claramente dañina — deben tomarse medidas correctivas pronto.",4:"Esta combinación es extremadamente dañina — deben tomarse medidas correctivas de inmediato."}, 
+
+    selectAll:"Seleccione espalda, brazos, piernas y carga para calcular una categoría." 
+
+  } 
+
+}; 
+
+let lang = 'en'; 
+
+ 
+
+const state = { back:null, arms:null, legs:null, load:null }; 
+
+ 
+
+const owasTable = [ 
+
+  [1,1,1, 1,1,1, 1,1,1, 2,2,2, 2,2,2, 1,1,1, 1,1,1], 
+
+  [1,1,1, 1,1,1, 1,1,1, 2,2,2, 2,2,2, 1,1,1, 1,1,1], 
+
+  [1,1,1, 1,1,1, 1,1,1, 2,2,3, 2,2,3, 1,1,1, 1,1,2], 
+
+  [2,2,3, 2,2,3, 2,2,3, 3,3,3, 3,3,3, 2,2,2, 2,3,3], 
+
+  [2,2,3, 2,2,3, 2,3,3, 3,4,4, 3,4,4, 3,3,4, 2,3,4], 
+
+  [3,3,4, 2,2,3, 3,3,3, 3,4,4, 4,4,4, 4,4,4, 2,3,4], 
+
+  [1,1,1, 1,1,1, 1,1,1, 3,3,3, 4,4,4, 1,1,1, 1,1,1], 
+
+  [2,2,3, 1,1,1, 1,1,1, 4,4,4, 4,4,4, 3,3,3, 1,1,1], 
+
+  [2,2,3, 1,1,1, 2,3,3, 4,4,4, 4,4,4, 4,4,4, 1,1,1], 
+
+  [2,3,3, 2,2,3, 2,2,3, 4,4,4, 4,4,4, 4,4,4, 2,3,4], 
+
+  [3,3,4, 2,3,4, 3,3,4, 4,4,4, 4,4,4, 4,4,4, 2,3,4], 
+
+  [4,4,4, 2,3,4, 3,3,4, 4,4,4, 4,4,4, 4,4,4, 2,3,4] 
+
+]; 
+
+ 
+
+const clamp = (v,min,max)=>Math.max(min,Math.min(max,v)); 
+
+const D2R = Math.PI/180; 
+
+const wrap = inner => `<svg viewBox="0 0 64 64" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`; 
+
+ 
+
+function torsoAt(angle){ 
+
+  const hipx=32, hipy=54, L=26; 
+
+  const tx = hipx + L*Math.sin(angle*D2R), ty = hipy - L*Math.cos(angle*D2R); 
+
+  const headx = hipx + (L+7)*Math.sin(angle*D2R), heady = hipy - (L+7)*Math.cos(angle*D2R); 
+
+  return {hipx,hipy,tx,ty,headx,heady, 
+
+    line:`<line x1="26" y1="62" x2="${hipx}" y2="${hipy}"/><line x1="38" y1="62" x2="${hipx}" y2="${hipy}"/>` + 
+
+      `<line x1="${hipx}" y1="${hipy}" x2="${tx.toFixed(1)}" y2="${ty.toFixed(1)}"/><circle cx="${headx.toFixed(1)}" cy="${heady.toFixed(1)}" r="6"/>`}; 
+
+} 
+
+function twistMark(cx,cy){ 
+
+  return `<path d="M${cx-8} ${cy-3} A8 8 0 1 1 ${cx-8} ${cy+3}" fill="none" stroke-width="2.6"/><polygon points="${cx-8},${cy+3} ${cx-3},${cy+2} ${cx-6},${cy+8}" fill="currentColor" stroke="none"/>`; 
+
+} 
+
+function iconBack(angle, twisted){ 
+
+  const t = torsoAt(angle); 
+
+  let extra = ''; 
+
+  if (twisted) extra = twistMark((t.tx+t.hipx)/2, (t.ty+t.hipy)/2 - 4); 
+
+  return wrap(t.line + extra); 
+
+} 
+
+ 
+
+function iconArms(leftUp, rightUp){ 
+
+  const head = `<circle cx="32" cy="10" r="5"/><line x1="32" y1="15" x2="32" y2="45"/><line x1="32" y1="45" x2="24" y2="58"/><line x1="32" y1="45" x2="40" y2="58"/>`; 
+
+  const leftArm = leftUp ? `<line x1="20" y1="20" x2="8" y2="8"/>` : `<line x1="20" y1="20" x2="14" y2="42"/>`; 
+
+  const rightArm = rightUp ? `<line x1="44" y1="20" x2="56" y2="8"/>` : `<line x1="44" y1="20" x2="50" y2="42"/>`; 
+
+  const shoulder = `<line x1="20" y1="20" x2="44" y2="20"/>`; 
+
+  return wrap(head + shoulder + leftArm + rightArm); 
+
+} 
+
+ 
+
+function iconLegType(n){ 
+
+  const head = `<circle cx="32" cy="10" r="5"/><line x1="32" y1="15" x2="32" y2="32"/>`; 
+
+  const ground = `<line x1="14" y1="58" x2="50" y2="58" stroke-width="2" stroke-dasharray="2,4"/>`; 
+
+  if (n===1){ 
+
+    return wrap(head + `<line x1="16" y1="32" x2="46" y2="32"/>` + 
+
+      `<line x1="32" y1="32" x2="46" y2="32"/><line x1="46" y1="32" x2="46" y2="54"/>` + ground); 
+
+  } 
+
+  if (n===2){ 
+
+    return wrap(head + `<line x1="32" y1="32" x2="25" y2="56"/><line x1="32" y1="32" x2="39" y2="56"/>` + ground); 
+
+  } 
+
+  if (n===3){ 
+
+    return wrap(head + `<line x1="32" y1="32" x2="28" y2="56"/><line x1="32" y1="32" x2="42" y2="44"/><line x1="42" y1="44" x2="46" y2="38"/>` + ground); 
+
+  } 
+
+  if (n===4){ 
+
+    return wrap(head + `<line x1="32" y1="32" x2="20" y2="44"/><line x1="20" y1="44" x2="22" y2="56"/>` + 
+
+      `<line x1="32" y1="32" x2="44" y2="44"/><line x1="44" y1="44" x2="42" y2="56"/>` + ground); 
+
+  } 
+
+  if (n===5){ 
+
+    return wrap(head + `<line x1="32" y1="32" x2="22" y2="42"/><line x1="22" y1="42" x2="24" y2="56"/>` + 
+
+      `<line x1="32" y1="32" x2="46" y2="50"/>` + ground); 
+
+  } 
+
+  if (n===6){ 
+
+    return wrap(head + `<line x1="32" y1="32" x2="22" y2="46"/><line x1="22" y1="46" x2="16" y2="56"/>` + 
+
+      `<circle cx="22" cy="46" r="2.4" fill="currentColor"/>` + 
+
+      `<line x1="32" y1="32" x2="42" y2="42"/><line x1="42" y1="42" x2="42" y2="56"/>` + ground); 
+
+  } 
+
+  return wrap(head + `<line x1="32" y1="32" x2="42" y2="56"/><line x1="32" y1="32" x2="22" y2="44"/><line x1="22" y1="44" x2="18" y2="56"/>` + ground); 
+
+} 
+
+function iconLoad(size){ 
+
+  return wrap(`<line x1="14" y1="32" x2="50" y2="32" stroke-width="4.5"/><circle cx="13" cy="32" r="${size}"/><circle cx="51" cy="32" r="${size}"/>`); 
+
+} 
+
+ 
+
+const ICON_CONFIG = { 
+
+  back: {1:()=>iconBack(2,false), 2:()=>iconBack(45,false), 3:()=>iconBack(5,true), 4:()=>iconBack(45,true)}, 
+
+  arms: {1:()=>iconArms(false,false), 2:()=>iconArms(false,true), 3:()=>iconArms(true,true)}, 
+
+  legs: {1:()=>iconLegType(1), 2:()=>iconLegType(2), 3:()=>iconLegType(3), 4:()=>iconLegType(4), 5:()=>iconLegType(5), 6:()=>iconLegType(6), 7:()=>iconLegType(7)}, 
+
+  load: {1:()=>iconLoad(2.5), 2:()=>iconLoad(5.5), 3:()=>iconLoad(8.5)} 
+
+}; 
+
+ 
+
+function renderChipIcons(){ 
+
+  document.querySelectorAll('.chips').forEach(group=>{ 
+
+    const key = group.getAttribute('data-group'); 
+
+    const config = ICON_CONFIG[key]; 
+
+    if (!config) return; 
+
+    group.querySelectorAll('.chip').forEach(btn=>{ 
+
+      if (btn.querySelector('.chip-icon')) return; 
+
+      const value = Number(btn.getAttribute('data-value')); 
+
+      const svg = config[value] ? config[value]() : ''; 
+
+      const label = document.createElement('div'); 
+
+      label.className = 'chip-label'; 
+
+      label.innerHTML = btn.innerHTML; 
+
+      const i18nKey = btn.getAttribute('data-i18n'); 
+
+      if (i18nKey){ label.setAttribute('data-i18n', i18nKey); btn.removeAttribute('data-i18n'); } 
+
+      const icon = document.createElement('div'); 
+
+      icon.className = 'chip-icon'; 
+
+      icon.innerHTML = svg; 
+
+      btn.innerHTML = ''; 
+
+      btn.appendChild(icon); 
+
+      btn.appendChild(label); 
+
+    }); 
+
+  }); 
+
+} 
+
+ 
+
+function applyI18n(){ 
+
+  const dict = I18N[lang]; 
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ 
+
+    const key = el.getAttribute('data-i18n'); 
+
+    if (dict[key] !== undefined) el.innerHTML = dict[key]; 
+
+  }); 
+
+  document.getElementById('langBtn').textContent = lang === 'en' ? 'ES' : 'EN'; 
+
+  document.documentElement.lang = lang; 
+
+  compute(); 
+
+} 
+
+ 
+
+function wire(){ 
+
+  document.querySelectorAll('.chips').forEach(group=>{ 
+
+    const key = group.getAttribute('data-group'); 
+
+    group.querySelectorAll('.chip').forEach(btn=>{ 
+
+      btn.addEventListener('click', ()=>{ 
+
+        group.querySelectorAll('.chip').forEach(b=>b.classList.remove('active')); 
+
+        btn.classList.add('active'); 
+
+        state[key] = Number(btn.getAttribute('data-value')); 
+
+        compute(); 
+
+      }); 
+
+    }); 
+
+  }); 
+
+  document.getElementById('langBtn').addEventListener('click', ()=>{ 
+
+    lang = lang === 'en' ? 'es' : 'en'; 
+
+    applyI18n(); 
+
+  }); 
+
+  document.getElementById('resetBtn').addEventListener('click', resetAll); 
+
+  document.getElementById('printBtn').addEventListener('click', ()=>window.print()); 
+
+  document.getElementById('exampleBtn').addEventListener('click', loadExample); 
+
+} 
+
+ 
+
+function resetAll(){ 
+
+  Object.keys(state).forEach(k=>{ state[k]=null; }); 
+
+  document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active')); 
+
+  compute(); 
+
+} 
+
+ 
+
+function loadExample(){ 
+
+  resetAll(); 
+
+  const example = { back:2, arms:2, legs:4, load:2 }; 
+
+  Object.assign(state, example); 
+
+  document.querySelectorAll('.chips').forEach(group=>{ 
+
+    const key = group.getAttribute('data-group'); 
+
+    group.querySelectorAll('.chip').forEach(btn=>{ 
+
+      if (Number(btn.getAttribute('data-value')) === state[key]) btn.classList.add('active'); 
+
+    }); 
+
+  }); 
+
+  compute(); 
+
+} 
+
+ 
+
+function setText(id, val){ document.getElementById(id).textContent = val; } 
+
+ 
+
+function updateSilhouette(){ 
+
+  const colorFor = (score,max)=>{ 
+
+    if (score===null) return '#3D6E93'; 
+
+    const ratio = clamp(score,1,max)/max; 
+
+    if (ratio <= 0.34) return '#4FA579'; 
+
+    if (ratio <= 0.67) return '#E0A527'; 
+
+    return '#D1495B'; 
+
+  }; 
+
+  document.getElementById('silTrunk').setAttribute('stroke', colorFor(state.back,4)); 
+
+  document.getElementById('silArmL').setAttribute('stroke', colorFor(state.arms,3)); 
+
+  document.getElementById('silArmR').setAttribute('stroke', colorFor(state.arms,3)); 
+
+  const legColor = colorFor(state.legs,7); 
+
+  document.getElementById('silLeg1').setAttribute('stroke', legColor); 
+
+  document.getElementById('silLeg2').setAttribute('stroke', legColor); 
+
+} 
+
+ 
+
+function compute(){ 
+
+  const dict = I18N[lang]; 
+
+  const required = ['back','arms','legs','load']; 
+
+  const complete = required.every(k => state[k] !== null); 
+
+ 
+
+  updateSilhouette(); 
+
+ 
+
+  if (!complete){ 
+
+    setText('finalScore','—'); 
+
+    document.getElementById('finalVerdict').textContent = dict.selectAll; 
+
+    document.getElementById('finalVerdict').className = 'final-verdict'; 
+
+    document.getElementById('finalAction').textContent = ''; 
+
+    document.getElementById('postureCodeWrap').style.display = 'none'; 
+
+    return; 
+
+  } 
+
+ 
+
+  const rowIdx = (state.back-1)*3 + (state.arms-1); 
+
+  const colIdx = (state.legs-1)*3 + (state.load-1); 
+
+  const category = owasTable[rowIdx][colIdx]; 
+
+ 
+
+  setText('finalScore', category); 
+
+  const finalEl = document.getElementById('finalScore'); 
+
+  finalEl.className = 'final-score band-' + category; 
+
+  const verdictEl = document.getElementById('finalVerdict'); 
+
+  verdictEl.textContent = dict.verdicts[category]; 
+
+  verdictEl.className = 'final-verdict band-' + category + '-bg'; 
+
+  document.getElementById('finalAction').textContent = dict.actions[category]; 
+
+ 
+
+  document.getElementById('postureCodeWrap').style.display = 'block'; 
+
+  setText('postureCode', `${state.back}-${state.arms}-${state.legs}-${state.load}`); 
+
+} 
+
+ 
+
+wire(); 
+
+renderChipIcons(); 
+
+applyI18n(); 
+
+</script> 
+
+</body> 
+
+</html> 
